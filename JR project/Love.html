@@ -4,48 +4,178 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Valentine Page</title>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
 <style>
-    body {
+    * {
         margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
         height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
-        background: #ffe6f0;
-        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #ffe6f0 0%, #ffcceb 50%, #ff99d9 100%);
+        font-family: 'Arial', sans-serif;
         overflow: hidden;
+        font-weight: bold;
+    }
+
+    /* Animated hearts background */
+    .heart {
+        position: fixed;
+        font-size: 2rem;
+        animation: float 3s ease-in infinite;
+        pointer-events: none;
+    }
+
+    @keyframes float {
+        0% {
+            transform: translateY(100vh) translateX(0);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(-100vh) translateX(20px);
+            opacity: 0;
+        }
     }
 
     .container {
         text-align: center;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 50px 40px;
+        border-radius: 30px;
+        box-shadow: 0 10px 40px rgba(214, 51, 132, 0.3);
+        animation: slideIn 0.6s ease-out;
+        z-index: 10;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
     }
 
     h1 {
         color: #d63384;
-        margin-bottom: 30px;
+        margin-bottom: 40px;
+        font-size: 2.5rem;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    .button-container {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
     }
 
     button {
-        padding: 12px 25px;
+        padding: 15px 40px;
         font-size: 18px;
+        font-weight: bold;
         border: none;
         border-radius: 25px;
         cursor: pointer;
-        position: absolute;
-        transition: 0.2s;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    button:active {
+        transform: translateY(-1px);
     }
 
     #yesBtn {
-        background-color: #28a745;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         color: white;
-        position: static;
-        margin-right: 20px;
+        flex: 1;
+        min-width: 120px;
+    }
+
+    #yesBtn:hover {
+        background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
     }
 
     #noBtn {
-        background-color: #dc3545;
+        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
         color: white;
+        flex: 1;
+        min-width: 120px;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    .message {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 30px 50px;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        z-index: 1000;
+        animation: popIn 0.5s ease-out;
+        display: none;
+    }
+
+    @keyframes popIn {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.5);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    }
+
+    .message.show {
+        display: block;
+    }
+
+    .message h2 {
+        color: #d63384;
+        margin-bottom: 15px;
+        font-size: 2rem;
+    }
+
+    .message p {
+        color: #555;
+        font-size: 1.1rem;
+    }
+
+    .funny-messages {
+        margin-top: 20px;
+        color: #ff6b6b;
+        font-size: 0.9rem;
+        font-style: italic;
     }
 </style>
 </head>
@@ -54,19 +184,173 @@
 
 <div class="container">
     <h1>Will you be my valentine? 🌹</h1>
-    <button id="yesBtn" onclick="alert('YOU & Nabil LOVE 4 EVER! ❤️')">Yes</button>
-    <button id="noBtn">No</button>
+    <div class="button-container">
+        <button id="yesBtn">Yes! 💕</button>
+        <button id="noBtn">No 😢</button>
+    </div>
+</div>
+
+<div class="message" id="message">
+    <h2>🎉 YES! 🎉</h2>
+    <p>YOU & Nabil LOVE 4 EVER! ❤️</p>
+    <p style="font-size: 3rem; margin-top: 20px;">💕💕💕</p>
 </div>
 
 <script>
     const noBtn = document.getElementById("noBtn");
+    const yesBtn = document.getElementById("yesBtn");
+    const messageBox = document.getElementById("message");
 
-    noBtn.addEventListener("mouseover", function() {
-        const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
-        const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
+    const funnyMessages = [
+        "Think again! 😏",
+        "You sure? 🤔",
+        "Really? 😭",
+        "Come ooon! 💔",
+        "Don't be shy! 😊",
+        "One more chance? 🥺",
+        "Please? 👉👈",
+        "I'm following you! 👻",
+        "You can't escape! 🎯"
+    ];
 
-        noBtn.style.left = x + "px";
-        noBtn.style.top = y + "px";
+    let attempts = 0;
+    let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // Floating hearts background animation
+    function createFloatingHearts() {
+        const hearts = ['❤️', '💕', '💖', '💗', '💝'];
+        setInterval(() => {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+            heart.style.left = Math.random() * window.innerWidth + 'px';
+            heart.style.animationDuration = (Math.random() * 2 + 3) + 's';
+            document.body.appendChild(heart);
+
+            setTimeout(() => heart.remove(), 5000);
+        }, 300);
+    }
+
+    createFloatingHearts();
+
+    function moveButtonAway() {
+        const padding = 50;
+        const maxX = Math.max(0, window.innerWidth - noBtn.offsetWidth - padding);
+        const maxY = Math.max(0, window.innerHeight - noBtn.offsetHeight - padding);
+        
+        let x, y;
+        
+        if (isMobile) {
+            // On mobile, move button to a guaranteed different spot
+            const corners = [
+                [0, 0],                                    // top-left
+                [maxX, 0],                                // top-right
+                [0, maxY],                                // bottom-left
+                [maxX, maxY],                             // bottom-right
+                [maxX / 2, 0],                            // top-center
+                [maxX / 2, maxY],                         // bottom-center
+                [0, maxY / 2],                            // left-center
+                [maxX, maxY / 2]                          // right-center
+            ];
+            
+            const randomCorner = corners[Math.floor(Math.random() * corners.length)];
+            x = randomCorner[0] + Math.random() * 50 - 25;
+            y = randomCorner[1] + Math.random() * 50 - 25;
+        } else {
+            // Desktop: random position
+            x = Math.random() * maxX;
+            y = Math.random() * maxY;
+        }
+        
+        x = Math.max(0, Math.min(x, maxX));
+        y = Math.max(0, Math.min(y, maxY));
+
+        noBtn.style.position = 'fixed';
+        noBtn.style.left = x + 'px';
+        noBtn.style.top = y + 'px';
+        noBtn.style.zIndex = '9999';
+    }
+
+    // Preposition button initially on mobile
+    if (isMobile) {
+        noBtn.style.position = 'fixed';
+    }
+
+    // MOBILE: Single tap to move
+    if (isMobile) {
+        noBtn.ontouchstart = function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            
+            moveButtonAway();
+            attempts++;
+            
+            const message = funnyMessages[attempts % funnyMessages.length];
+            const oldText = noBtn.textContent;
+            noBtn.textContent = message;
+            
+            setTimeout(() => {
+                noBtn.textContent = oldText;
+            }, 1500);
+            
+            return false;
+        };
+        
+        noBtn.onclick = function(e) {
+            e.preventDefault();
+            return false;
+        };
+    } else {
+        // DESKTOP: Hover and click to move
+        noBtn.addEventListener("mouseover", moveButtonAway);
+        
+        noBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            moveButtonAway();
+            
+            attempts++;
+            const message = funnyMessages[attempts % funnyMessages.length];
+            const oldText = noBtn.textContent;
+            noBtn.textContent = message;
+            
+            setTimeout(() => {
+                noBtn.textContent = oldText;
+            }, 1500);
+        });
+    }
+
+    // Yes button - Show message and confetti
+    yesBtn.addEventListener("click", function() {
+        messageBox.classList.add('show');
+        
+        // Confetti animation
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+
+        // Extra confetti bursts
+        setTimeout(() => {
+            confetti({
+                particleCount: 50,
+                spread: 100,
+                origin: { y: 0.5 }
+            });
+        }, 200);
+
+        // Hide message after 3 seconds
+        setTimeout(() => {
+            messageBox.classList.remove('show');
+        }, 3000);
+    });
+
+    // After 5 failed attempts, make Yes button bigger
+    yesBtn.addEventListener("click", function checkAttempts() {
+        if (attempts > 5) {
+            yesBtn.style.fontSize = '24px';
+            yesBtn.style.padding = '20px 50px';
+        }
     });
 </script>
 
